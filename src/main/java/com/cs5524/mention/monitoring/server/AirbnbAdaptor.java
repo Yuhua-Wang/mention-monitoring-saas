@@ -1,7 +1,11 @@
 package com.cs5524.mention.monitoring.server;
 
+import com.cs5524.mention.monitoring.server.database.model.Keyword;
+import com.cs5524.mention.monitoring.server.database.model.KeywordMention;
 import com.cs5524.mention.monitoring.server.database.model.Mention;
 import com.cs5524.mention.monitoring.server.database.repo.MentionRepo;
+import com.cs5524.mention.monitoring.server.database.service.KeywordMentionService;
+import com.cs5524.mention.monitoring.server.database.service.KeywordService;
 import com.cs5524.mention.monitoring.server.database.service.MentionService;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -13,6 +17,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.sql.Date;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 public class AirbnbAdaptor implements SocialMediaAPIAdaptor{
@@ -21,6 +27,10 @@ public class AirbnbAdaptor implements SocialMediaAPIAdaptor{
     private RestTemplate restTemplate;
     @Autowired
     private MentionService mentionService;
+    @Autowired
+    private KeywordService keywordService;
+    @Autowired
+    private KeywordMentionService keywordMentionService;
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     private static class Airbnb {
@@ -59,11 +69,24 @@ public class AirbnbAdaptor implements SocialMediaAPIAdaptor{
             String summary = "TODO";
             Mention.Sentiment sentiment = Mention.Sentiment.NEUTRAL;
 
+
             Mention m = new Mention(a.comments, summary, sentiment, Mention.Source.AIRBNB, a.rid, a.date);
             mentions.add(m);
         }
-
         mentionService.saveAll(mentions);
+
+        List<Keyword> keywords = keywordService.getAllKeywords();
+        List<KeywordMention> km = new ArrayList<>();
+        for (Mention m : mentions) {
+            for (Keyword k : keywords) {
+                String regex = ".*\\b" + k.getKeyword() + "\\b.*";
+                if (m.getContent().matches(regex)) {
+                    km.add(new KeywordMention(k, m));
+                }
+            }
+        }
+        keywordMentionService.saveAll(km);
+
         return mentions;
     }
 }

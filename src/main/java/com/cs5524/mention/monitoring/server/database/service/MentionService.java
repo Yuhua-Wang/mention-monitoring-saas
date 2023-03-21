@@ -15,4 +15,17 @@ public class MentionService {
     public void saveAll(List<Mention> mentions) {
         mentionRepo.saveAll(mentions);
     }
+
+    public int getLastCollected() {
+        return mentionRepo.getLastCollected();
+    }
+
+    public Mention findById(int id) {
+        return mentionRepo.findById(id);
+    }
+
+    // find all mentions whose content contains a regex match to the input
+    public List<Mention> findWithRegex(String contains) {
+        return mentionRepo.findWithRegex(contains);
+    }
 }
