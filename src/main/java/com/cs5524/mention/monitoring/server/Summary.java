@@ -12,7 +12,7 @@ import java.util.List;
 import java.nio.ByteBuffer;
 
 public class Summary {
-    public static void main() throws JsonProcessingException {
+    public static void main(String[] args) throws JsonProcessingException {
         List<String> texts = new ArrayList<String>();
         texts.add("This is a test text that is long and full of crap that no one will ever care.");
         texts.add(

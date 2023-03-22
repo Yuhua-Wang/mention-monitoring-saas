@@ -13,7 +13,7 @@ import java.lang.Integer;
 import java.nio.ByteBuffer;
 
 public class SentimentAnalysis {
-    public static void main() throws JsonProcessingException {
+    public static void main(String[] args) throws JsonProcessingException {
         List<String> texts = new ArrayList<String>();
         texts.add("The movie was great!");
         texts.add(
@@ -27,7 +27,7 @@ public class SentimentAnalysis {
     public static List<Integer> getSentiment(List<String> texts) throws JsonProcessingException {
         AmazonSageMakerRuntime sagemaker = AmazonSageMakerRuntimeClientBuilder.defaultClient();
 
-        String endpointName = "sagemaker-pytorch-2020-11-08-21-39-49-202";
+        String endpointName = "arn:aws:sagemaker:us-east-1:664113470216:endpoint/sentiment-analysis";
         String contentType = "application/json";
         List<Integer> sentiments = new ArrayList<Integer>();
         for (String text : texts) {
