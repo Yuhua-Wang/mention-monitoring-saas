@@ -13,6 +13,17 @@ import java.lang.Integer;
 import java.nio.ByteBuffer;
 
 public class SentimentAnalysis {
+    public static void main() throws JsonProcessingException {
+        List<String> texts = new ArrayList<String>();
+        texts.add("The movie was great!");
+        texts.add(
+                "The food was terrible.");
+        List<Integer> sentiments = getSentiment(texts);
+        for (Integer sentiment : sentiments) {
+            System.out.println(sentiment);
+        }
+    }
+
     public static List<Integer> getSentiment(List<String> texts) throws JsonProcessingException {
         AmazonSageMakerRuntime sagemaker = AmazonSageMakerRuntimeClientBuilder.defaultClient();
 
