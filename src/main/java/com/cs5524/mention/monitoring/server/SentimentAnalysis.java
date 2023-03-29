@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.lang.Integer;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import org.json.JSONObject;
 
 public class SentimentAnalysis {
     public static void main(String[] args) throws JsonProcessingException {
@@ -27,21 +29,22 @@ public class SentimentAnalysis {
     public static List<Integer> getSentiment(List<String> texts) throws JsonProcessingException {
         AmazonSageMakerRuntime sagemaker = AmazonSageMakerRuntimeClientBuilder.defaultClient();
 
-        String endpointName = "arn:aws:sagemaker:us-east-1:664113470216:endpoint/sentiment-analysis";
+        String endpointName = "sentiment-analysis";
         String contentType = "application/json";
         List<Integer> sentiments = new ArrayList<Integer>();
         for (String text : texts) {
-            String payload = "{\"inputs\": \"" + text + "\"}";
+            String payload = "{\"inputs\":\"" + text + "\"}";
+            // JSONObject obj = new JSONObject(payload);
             InvokeEndpointRequest request = new InvokeEndpointRequest()
                     .withEndpointName(endpointName)
                     .withContentType(contentType)
+                    // .withAccept(contentType)
                     .withBody(ByteBuffer.wrap(payload.getBytes()));
-            String response = sagemaker.invokeEndpoint(request).getBody().toString();
-            ObjectMapper mapper = new ObjectMapper();
-            String sentiment = mapper.readTree(response).get(0).get("label").asText();
-            if (sentiment.equals("positive")) {
+            InvokeEndpointResult result = sagemaker.invokeEndpoint(request);
+            String response = new String(result.getBody().array(), Charset.forName("UTF-8"));
+            if (response.contains("positive")) {
                 sentiments.add(1);
-            } else if (sentiment.equals("negative")) {
+            } else if (response.contains("negative")) {
                 sentiments.add(-1);
             } else {
                 sentiments.add(0);

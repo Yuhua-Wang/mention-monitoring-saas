@@ -26,7 +26,7 @@ public class Summary {
     public static List<String> getSummary(List<String> texts) throws JsonProcessingException {
         AmazonSageMakerRuntime sagemaker = AmazonSageMakerRuntimeClientBuilder.defaultClient();
 
-        String endpointName = "sagemaker-tensorflow-2020-11-08-21-39-49-202";
+        String endpointName = "summary-generation";
         String contentType = "application/json";
 
         List<String> summaries = new ArrayList<String>();
@@ -37,7 +37,8 @@ public class Summary {
                     .withEndpointName(endpointName)
                     .withContentType(contentType)
                     .withBody(ByteBuffer.wrap(payload.getBytes()));
-            String response = sagemaker.invokeEndpoint(request).getBody().toString();
+            InvokeEndpointResult result = sagemaker.invokeEndpoint(request);
+            String response = new String(result.getBody().array(), java.nio.charset.StandardCharsets.UTF_8);
             ObjectMapper mapper = new ObjectMapper();
             String summary = mapper.readTree(response).get(0).get("generated_text").asText();
             summaries.add(summary);
