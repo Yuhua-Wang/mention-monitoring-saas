@@ -1,5 +1,6 @@
 package com.cs5524.mention.monitoring.server.database.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.sql.Date;
@@ -46,6 +47,7 @@ public class Mention {
     @Temporal(TemporalType.DATE)
     private Date createdAt;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "mention")
     private Set<KeywordMention> keywords = new HashSet<>();
 

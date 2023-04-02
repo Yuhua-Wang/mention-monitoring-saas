@@ -18,7 +18,6 @@ public class KeywordMention implements Serializable {
     private Keyword keyword;
 
     @Id
-    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "mention", referencedColumnName = "id")
     @OnDelete(action = OnDeleteAction.CASCADE)

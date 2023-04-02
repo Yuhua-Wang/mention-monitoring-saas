@@ -36,4 +36,18 @@ public class KeywordMentionService {
     public void saveAll(List<KeywordMention> km) {
         repo.saveAll(km);
     }
+
+    public Map<Integer, Set<String>> getKeywordMentions() {
+        Map<Integer, Set<String>> res = new HashMap<>();
+
+        List<Object[]> kws = repo.getAllKeywordMention();
+        for (Object[] kw : kws) {
+            Integer mention = (Integer) kw[1];
+            Set<String> s = res.getOrDefault(mention, new HashSet<>());
+            s.add((String)kw[0]);
+            res.put(mention, s);
+        }
+
+        return res;
+    }
 }

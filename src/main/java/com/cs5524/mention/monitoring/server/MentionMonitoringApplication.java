@@ -1,6 +1,5 @@
 package com.cs5524.mention.monitoring.server;
 
-import com.cs5524.mention.monitoring.server.database.model.Keyword;
 import com.cs5524.mention.monitoring.server.database.model.Mention;
 import com.cs5524.mention.monitoring.server.database.service.KeywordMentionService;
 import com.cs5524.mention.monitoring.server.database.service.KeywordService;
@@ -11,7 +10,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import java.sql.Date;
 import java.util.Calendar;
@@ -75,12 +73,11 @@ public class MentionMonitoringApplication {
 			@RequestParam(name = "sentiment", required = false) Mention.Sentiment sentiment,
 			@RequestParam(name = "start_date", required = false) Date startDate,
 			@RequestParam(name = "end_date", required = false) Date endDate) {
-//		try {
-//			return ResponseEntity.ok(mentionService.findWithFilter(source, sentiment, startDate, endDate));
-//		} catch (Exception e) {
-//			return ResponseEntity.badRequest().body("invalid parameters");
-//		}
-		return ResponseEntity.ok(mentionService.findWithFilter(source, sentiment, startDate, endDate));
+		try {
+			return ResponseEntity.ok(mentionService.findWithFilter(source, sentiment, startDate, endDate));
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().body("invalid parameters");
+		}
 	}
 
 	@GetMapping("/statistics")
@@ -96,16 +93,21 @@ public class MentionMonitoringApplication {
 		}
 	}
 
-	// Keyword Mention
+	// Keyword Mentions
+	@GetMapping("/keyword_mentions")
+	public ResponseEntity<?> getKeywordMentions() {
+		return ResponseEntity.ok(keywordMentionService.getKeywordMentions());
+	}
+
 
 
 	@GetMapping("/test")
-	public ResponseEntity<List<Object[]>> test() {
+	public ResponseEntity<List<Mention>> test() {
 		Calendar calendar = Calendar.getInstance();
 		calendar.set(2020,Calendar.MARCH,1);
 		long unixTime = calendar.getTimeInMillis();
 
-		List<Object[]> res = mentionService.getStatistics(
+		List<Mention> res = mentionService.findWithFilter(
 				Mention.Source.AIRBNB,
 				null,
 				new Date(unixTime),
