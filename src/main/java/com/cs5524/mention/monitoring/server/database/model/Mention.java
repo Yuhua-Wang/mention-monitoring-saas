@@ -25,24 +25,26 @@ public class Mention {
     @Column(name = "id")
     private int id;
 
-    @Column(name="content", nullable = false)
+    @Column(name="content", length = 2500,nullable = false)
     private String content;
 
-    @Column(name="summary", nullable = false)
+    @Column(name="summary", length = 2500, nullable = false)
     private String summary;
 
+    @Enumerated(EnumType.STRING)
     @Column(name="sentiment", nullable = false)
     private Sentiment sentiment;
 
+    @Enumerated(EnumType.STRING)
     @Column(name="source", nullable = false)
     private Source source;
 
     @Column(name="id_in_source", nullable = true)
-    private String id_in_source;
+    private int id_in_source;
 
     @Column(name = "created_at")
     @Temporal(TemporalType.DATE)
-    private Date created_at;
+    private Date createdAt;
 
     @OneToMany(mappedBy = "mention")
     private Set<KeywordMention> keywords = new HashSet<>();
@@ -87,29 +89,29 @@ public class Mention {
         this.source = source;
     }
 
-    public String getId_in_source() {
+    public int getId_in_source() {
         return id_in_source;
     }
 
-    public void setId_in_source(String id_in_source) {
+    public void setId_in_source(int id_in_source) {
         this.id_in_source = id_in_source;
     }
 
-    public Date getCreated_at() {
-        return created_at;
+    public Date getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCreated_at(Date created_at) {
-        this.created_at = created_at;
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 
-    public Mention(String content, String summary, Sentiment sentiment, Source source, String id_in_source, Date created_at) {
+    public Mention(String content, String summary, Sentiment sentiment, Source source, int id_in_source, Date created_at) {
         this.content = content;
         this.summary = summary;
         this.sentiment = sentiment;
         this.source = source;
         this.id_in_source = id_in_source;
-        this.created_at = created_at;
+        this.createdAt = created_at;
     }
 
     public Mention() {
