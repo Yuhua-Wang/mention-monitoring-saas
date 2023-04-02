@@ -31,9 +31,11 @@ public class Mention {
     @Column(name="summary", length = 2500, nullable = false)
     private String summary;
 
+    @Enumerated(EnumType.STRING)
     @Column(name="sentiment", nullable = false)
     private Sentiment sentiment;
 
+    @Enumerated(EnumType.STRING)
     @Column(name="source", nullable = false)
     private Source source;
 
@@ -42,7 +44,7 @@ public class Mention {
 
     @Column(name = "created_at")
     @Temporal(TemporalType.DATE)
-    private Date created_at;
+    private Date createdAt;
 
     @OneToMany(mappedBy = "mention")
     private Set<KeywordMention> keywords = new HashSet<>();
@@ -95,12 +97,12 @@ public class Mention {
         this.id_in_source = id_in_source;
     }
 
-    public Date getCreated_at() {
-        return created_at;
+    public Date getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCreated_at(Date created_at) {
-        this.created_at = created_at;
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 
     public Mention(String content, String summary, Sentiment sentiment, Source source, int id_in_source, Date created_at) {
@@ -109,7 +111,7 @@ public class Mention {
         this.sentiment = sentiment;
         this.source = source;
         this.id_in_source = id_in_source;
-        this.created_at = created_at;
+        this.createdAt = created_at;
     }
 
     public Mention() {
