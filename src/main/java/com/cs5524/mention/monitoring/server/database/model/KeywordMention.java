@@ -1,5 +1,6 @@
 package com.cs5524.mention.monitoring.server.database.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -17,6 +18,7 @@ public class KeywordMention implements Serializable {
     private Keyword keyword;
 
     @Id
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "mention", referencedColumnName = "id")
     @OnDelete(action = OnDeleteAction.CASCADE)

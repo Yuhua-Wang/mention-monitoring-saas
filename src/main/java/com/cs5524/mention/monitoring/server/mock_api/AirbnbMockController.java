@@ -16,7 +16,9 @@ public class AirbnbMockController {
     private AirbnbMockService airbnbMockService;
 
     @GetMapping("/getData")
-    public ResponseEntity<List<AirbnbMock>> getUncollectedData(@RequestParam(required = false) Integer last_id) {
+    public ResponseEntity<List<AirbnbMock>> getUncollectedData(
+            @RequestParam(name = "last_id", required = false) Integer last_id
+    ) {
         if (last_id != null) {
             return new ResponseEntity<>(airbnbMockService.getUncollectedData(last_id), HttpStatus.OK);
         }

@@ -23,7 +23,7 @@ public class Mention {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private int id;
+    private Integer id;
 
     @Column(name="content", length = 2500,nullable = false)
     private String content;
@@ -49,12 +49,20 @@ public class Mention {
     @OneToMany(mappedBy = "mention")
     private Set<KeywordMention> keywords = new HashSet<>();
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
+    }
+
+    public Set<KeywordMention> getKeywords() {
+        return keywords;
+    }
+
+    public void setKeywords(Set<KeywordMention> keywords) {
+        this.keywords = keywords;
     }
 
     public String getContent() {

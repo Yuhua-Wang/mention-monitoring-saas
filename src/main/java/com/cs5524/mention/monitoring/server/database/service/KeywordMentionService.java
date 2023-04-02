@@ -24,13 +24,13 @@ public class KeywordMentionService {
         return repo.findByKeyword(keyword);
     }
 
-    public void createByKeyword(Keyword keyword) {
+    public int createByKeyword(Keyword keyword) {
         List<Mention> mentions = mentionService.findWithRegex(keyword.getKeyword());
         List<KeywordMention> keywordMentions = new ArrayList<>();
         for (Mention m : mentions) {
             keywordMentions.add(new KeywordMention(keyword, m));
         }
-        repo.saveAll(keywordMentions);
+        return repo.saveAll(keywordMentions).size();
     }
 
     public void saveAll(List<KeywordMention> km) {

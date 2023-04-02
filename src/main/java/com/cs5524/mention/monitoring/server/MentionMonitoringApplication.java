@@ -1,5 +1,6 @@
 package com.cs5524.mention.monitoring.server;
 
+import com.cs5524.mention.monitoring.server.database.model.Keyword;
 import com.cs5524.mention.monitoring.server.database.model.Mention;
 import com.cs5524.mention.monitoring.server.database.service.KeywordMentionService;
 import com.cs5524.mention.monitoring.server.database.service.KeywordService;
@@ -9,8 +10,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.sql.Date;
 import java.util.Calendar;
@@ -22,7 +23,7 @@ import java.util.List;
 public class MentionMonitoringApplication {
 
 	@Autowired
-	AirbnbAdaptor api;
+	AirbnbAdaptor airbnbAdaptor;
 	@Autowired
 	MentionService mentionService;
 	@Autowired
@@ -39,6 +40,65 @@ public class MentionMonitoringApplication {
 		return new ResponseEntity<String>("Hello World", HttpStatus.OK);
 	}
 
+	// Keywords
+	@GetMapping("/keywords")
+	public ResponseEntity<List<String>> getKeywords() {
+		return ResponseEntity.ok(keywordService.findAllDistinct());
+	}
+
+	@PostMapping("/keywords")
+	public ResponseEntity<String> createKeyword(@RequestParam("keyword") String keyword) {
+		int numCreated = keywordService.create(keyword);
+		if (numCreated < 0) {
+			return ResponseEntity.badRequest().body("Keyword " + keyword + " already exist");
+		}
+		return new ResponseEntity<String>("Found " + numCreated + " matching mentions", HttpStatus.OK);
+	}
+
+	@DeleteMapping("/keywords")
+	public ResponseEntity<String> deleteKeyword(@RequestParam("keyword") String keyword) {
+		keywordService.delete(keyword);
+		return new ResponseEntity<String>("Success", HttpStatus.OK);
+	}
+
+	// Mentions
+	@GetMapping("/fetchMentions")
+	public ResponseEntity<?> fetchMentions() {
+		int lastID = mentionService.getLastCollected();
+		airbnbAdaptor.getData(lastID);
+		return ResponseEntity.ok(mentionService.findWithFilter(null,null,null,null));
+	}
+
+	@GetMapping("/mentions")
+	public ResponseEntity<?> getMentions(
+			@RequestParam(name = "source", required = false) Mention.Source source,
+			@RequestParam(name = "sentiment", required = false) Mention.Sentiment sentiment,
+			@RequestParam(name = "start_date", required = false) Date startDate,
+			@RequestParam(name = "end_date", required = false) Date endDate) {
+//		try {
+//			return ResponseEntity.ok(mentionService.findWithFilter(source, sentiment, startDate, endDate));
+//		} catch (Exception e) {
+//			return ResponseEntity.badRequest().body("invalid parameters");
+//		}
+		return ResponseEntity.ok(mentionService.findWithFilter(source, sentiment, startDate, endDate));
+	}
+
+	@GetMapping("/statistics")
+	public ResponseEntity<?> getStatistics(
+			@RequestParam(name = "source", required = false) Mention.Source source,
+			@RequestParam(name = "sentiment", required = false) Mention.Sentiment sentiment,
+			@RequestParam(name = "start_date", required = false) Date startDate,
+			@RequestParam(name = "end_date", required = false) Date endDate) {
+		try {
+			return ResponseEntity.ok(mentionService.getStatistics(source, sentiment, startDate, endDate));
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().body("invalid parameters");
+		}
+	}
+
+	// Keyword Mention
+
+
 	@GetMapping("/test")
 	public ResponseEntity<List<Object[]>> test() {
 		Calendar calendar = Calendar.getInstance();
@@ -52,11 +112,5 @@ public class MentionMonitoringApplication {
 				null
 		);
 		return new ResponseEntity<>(res, HttpStatus.OK);
-	}
-
-	@GetMapping("/get")
-	public ResponseEntity<String> getAll() {
-		api.getData();
-		return new ResponseEntity<String>("Success", HttpStatus.OK);
 	}
 }

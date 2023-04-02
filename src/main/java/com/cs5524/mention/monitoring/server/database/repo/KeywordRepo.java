@@ -10,9 +10,13 @@ import java.util.List;
 @Repository
 public interface KeywordRepo extends JpaRepository<Keyword, String> {
 
+    boolean existsByKeyword(String keyword);
+
     int deleteByKeyword(String keyword);
 
     @Query(value = "SELECT keyword FROM keyword", nativeQuery = true)
     List<String> getAllInString();
 
+    @Query("SELECT DISTINCT keyword FROM Keyword")
+    List<String> findAllDistinct();
 }

@@ -20,8 +20,9 @@ public interface MentionRepo extends JpaRepository<Mention, Integer> {
     @Query(value = "SELECT * FROM mention WHERE content RLIKE CONCAT('\\\\b', ?1, '\\\\b')", nativeQuery = true)
     List<Mention> findWithRegex(String contains);
 
-    @Query("SELECT m FROM Mention m WHERE " +
-            "(:source IS NULL OR m.source = :source)" +
+    @Query("SELECT DISTINCT m" +
+            " FROM Mention m" +
+            " WHERE (:source IS NULL OR m.source = :source)" +
             " AND (:sentiment IS NULL OR m.sentiment = :sentiment)" +
             " AND (:startDate IS NULL OR m.createdAt >= :startDate)" +
             " AND (:endDate IS NULL OR m.createdAt <= :endDate)")
