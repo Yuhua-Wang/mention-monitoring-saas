@@ -64,7 +64,7 @@ public class MentionMonitoringApplication {
 	public ResponseEntity<?> fetchMentions() {
 		int lastID = mentionService.getLastCollected();
 		airbnbAdaptor.getData(lastID);
-		return ResponseEntity.ok(mentionService.findWithFilter(null,null,null,null));
+		return ResponseEntity.ok("success");
 	}
 
 	@GetMapping("/mentions")
