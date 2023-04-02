@@ -15,4 +15,7 @@ public interface KeywordMentionRepo extends JpaRepository<KeywordMention, Keywor
 
     List<KeywordMention> findByKeyword(String keyword);
 
+    @Query("SELECT km.keyword.keyword, km.mention.id FROM Keyword_Mention km")
+    List<Object[]> getAllKeywordMention();
+
 }

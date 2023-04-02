@@ -1,5 +1,6 @@
 package com.cs5524.mention.monitoring.server.database.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.*;
@@ -10,6 +11,7 @@ public class Keyword {
     @Column(name="keyword")
     private String keyword;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "keyword")
     private Set<KeywordMention> mentions = new HashSet<>();
 
