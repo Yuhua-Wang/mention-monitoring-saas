@@ -17,7 +17,7 @@ public class MentionService {
         mentionRepo.saveAll(mentions);
     }
 
-    public int getLastCollected() {
+    public Integer getLastCollected() {
         return mentionRepo.getLastCollected();
     }
 

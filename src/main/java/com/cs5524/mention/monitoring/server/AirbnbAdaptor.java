@@ -20,6 +20,9 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.cs5524.mention.monitoring.server.SentimentAnalysis.getSentiment;
+import static com.cs5524.mention.monitoring.server.Summary.getSummary;
+
 @Component
 public class AirbnbAdaptor implements SocialMediaAPIAdaptor{
     private static final String url = "http://localhost:8080/airbnb/mock/getData";
@@ -59,20 +62,34 @@ public class AirbnbAdaptor implements SocialMediaAPIAdaptor{
         try {
             AirbnbData = objectMapper.readValue(responseJson, new TypeReference<List<Airbnb>>(){});
         } catch (Exception e) {
-            System.out.println("Failed to parse JSON: " + e.toString());
+            System.out.println("Failed to parse JSON: \n" + e.toString());
             AirbnbData = new ArrayList<>();
         }
 
         List<Mention> mentions = new ArrayList<>();
         for (Airbnb a : AirbnbData) {
-            // TODO: integrate NLP model for the analysis
-            String summary = "TODO";
-            Mention.Sentiment sentiment = Mention.Sentiment.NEUTRAL;
+            try {
+                String c = a.comments.replaceAll("[^a-zA-Z0-9 ]", "");
+                int sentimentInt = getSentiment(c);
+                String summary = getSummary(c);
 
+                Mention.Sentiment sentiment = Mention.Sentiment.NEUTRAL;
+                switch (sentimentInt) {
+                    case 1 -> sentiment = Mention.Sentiment.POSITIVE;
+                    case -1 -> sentiment = Mention.Sentiment.NEGATIVE;
+                    default -> {
+                    }
+                }
 
-            Mention m = new Mention(a.comments, summary, sentiment, Mention.Source.AIRBNB, a.rid, a.date);
-            mentions.add(m);
+                Mention m = new Mention(a.comments, summary, sentiment, Mention.Source.AIRBNB, a.rid, a.date);
+                mentions.add(m);
+                System.out.println("done with " + m.getId_in_source());
+            } catch (Exception e) {
+                System.out.println(e.toString());
+                return mentions;
+            }
         }
+
         mentionService.saveAll(mentions);
 
         List<Keyword> keywords = keywordService.getAllKeywords();

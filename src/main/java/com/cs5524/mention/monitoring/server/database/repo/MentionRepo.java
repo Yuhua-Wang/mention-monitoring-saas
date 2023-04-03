@@ -13,7 +13,7 @@ import java.util.*;
 public interface MentionRepo extends JpaRepository<Mention, Integer> {
 
     @Query(value = "SELECT id_in_source FROM mention ORDER BY id_in_source DESC LIMIT 1", nativeQuery = true)
-    int getLastCollected();
+    Integer getLastCollected();
 
     Mention findById(int id);
 
