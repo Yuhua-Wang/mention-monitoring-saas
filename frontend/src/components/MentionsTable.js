@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
-  Typography,
   Table,
   TableBody,
   TableCell,
@@ -8,23 +7,30 @@ import {
   TableHead,
   TableRow,
   Paper,
-  TablePagination,
-} from "@mui/material";
+  Chip,
+  TablePagination
+} from '@mui/material';
+import { styled } from '@mui/system';
 
-import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined';
+const truncateSummary = (summary, maxWords) => {
+  const words = summary.split(' ');
+  return words.length > maxWords ? words.slice(0, maxWords).join(' ') + '...' : summary;
+};
 
-function MentionsTable({ mentions }) {
-  const [orderBy, setOrderBy] = useState('createdAt');
-  const [order, setOrder] = useState('desc');
-  const [page, setPage] = useState(0);
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
+  '&:hover': {
+    backgroundColor: '#f5f5f5',
+  },
+  // '&:nth-of-type(odd)': {
+  //   backgroundColor: theme.palette.action.selected,
+  // },
+}));
+
+const MentionsTable = ({ mentions }) => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [hoveredRow, setHoveredRow] = useState(null);
+  const [page, setPage] = useState(0);
 
-  const handleSort = (property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrderBy(property);
-    setOrder(isAsc ? 'desc' : 'asc');
-  };
+  const sortedMentions = mentions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -35,95 +41,46 @@ function MentionsTable({ mentions }) {
     setPage(0);
   };
 
-  const sortedMentions = mentions.sort((a, b) => {
-    const orderMultiplier = order === 'asc' ? 1 : -1;
-    if (orderBy === 'sentiment') {
-      return orderMultiplier * a.sentiment.localeCompare(b.sentiment);
-    }
-    return orderMultiplier * (new Date(a.createdAt) - new Date(b.createdAt));
-  });
-
-  const paginatedMentions = sortedMentions.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-
-  const handleRowHover = (index) => {
-    setHoveredRow(index);
-  };
-
   return (
     <TableContainer component={Paper}>
-      <Table aria-label="mentions table">
+      <Table>
         <TableHead>
           <TableRow>
-            <TableCell
-              key="summary"
-              sortDirection={orderBy === 'summary' ? order : false}
-              onClick={() => handleSort('summary')}
-            >
-              Summary
-            </TableCell>
-            <TableCell
-              key="sentiment"
-              sortDirection={orderBy === 'sentiment' ? order : false}
-              onClick={() => handleSort('sentiment')}
-            >
-              Sentiment
-            </TableCell>
-            <TableCell
-              key="createdAt"
-              sortDirection={orderBy === 'createdAt' ? order : false}
-              onClick={() => handleSort('createdAt')}
-            >
-              Created At
-            </TableCell>
+            <TableCell>Summary</TableCell>
+            <TableCell>Sentiment</TableCell>
+            <TableCell>Created At</TableCell>
+            <TableCell>Keywords</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {paginatedMentions.map((mention, index) => (
-            <React.Fragment key={mention.id}>
-              <TableRow key={mention.id}
-                        onMouseEnter={() => handleRowHover(index)}
-                        onMouseLeave={() => handleRowHover(null)}
-              >
-                <TableCell component="th" scope="row">
-                  {mention.summary}
-
-                  {/*{mention.summary}*/}
-                  {/*{index === hoveredRow && (*/}
-                  {/*  <div>{mention.content}</div>*/}
-                  {/*)}*/}
-
-                </TableCell>
-                <TableCell>{mention.sentiment}</TableCell>
-                <TableCell>{new Date(mention.createdAt).toLocaleString()}</TableCell>
-              </TableRow>
-              {index === hoveredRow && (
-                <TableRow>
-                  <TableCell colSpan={3}>
-                    <Typography>
-                      <strong>Id in source: </strong>
-                      {mention.id_in_source}
-                      <br />
-                      <strong>Content: </strong>
-                      {mention.content}
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </React.Fragment>
+          {sortedMentions.slice(page * rowsPerPage, (page * rowsPerPage) + rowsPerPage).map((mention) => (
+            <StyledTableRow key={mention.id}>
+              <TableCell>{truncateSummary(mention.summary, 10)}</TableCell>
+              <TableCell>{mention.sentiment}</TableCell>
+              <TableCell>{mention.createdAt}</TableCell>
+              <TableCell>
+                {mention.keywords.slice(0, 2).map((keyword, index) => (
+                  <Chip key={index} label={keyword} style={{ margin: '0 4px 4px 0' }} />
+                ))}
+                {mention.keywords.length > 2 && (
+                  <Chip label="..." style={{ margin: '0 4px 4px 0' }} />
+                )}
+              </TableCell>
+            </StyledTableRow>
           ))}
         </TableBody>
       </Table>
       <TablePagination
-        rowsPerPageOptions={[10, 20, 50]}
         component="div"
-        count={sortedMentions.length}
-        rowsPerPage={rowsPerPage}
+        count={mentions.length}
         page={page}
         onPageChange={handleChangePage}
+        rowsPerPage={rowsPerPage}
         onRowsPerPageChange={handleChangeRowsPerPage}
+        rowsPerPageOptions={[10, 20, 50]}
       />
     </TableContainer>
   );
-}
+};
 
 export default MentionsTable;
