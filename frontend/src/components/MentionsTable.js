@@ -1,129 +1,349 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  TablePagination,
-} from "@mui/material";
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip,
+  TablePagination, Icon, Select, MenuItem, FormControl, InputLabel, TextField,
+  Box, Button, Dialog, DialogTitle, DialogActions, Snackbar, Alert
+} from '@mui/material';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { styled } from '@mui/system';
+import { SentimentNeutral, ThumbUp, ThumbDown, Close} from '@mui/icons-material';
+import dayjs from 'dayjs';
 
-import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined';
+import MentionDialog from './MentionDialog'
 
-function MentionsTable({ mentions }) {
-  const [orderBy, setOrderBy] = useState('createdAt');
-  const [order, setOrder] = useState('desc');
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [hoveredRow, setHoveredRow] = useState(null);
+import axios from 'axios';
+const url = "http://localhost:8080"
 
-  const handleSort = (property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrderBy(property);
-    setOrder(isAsc ? 'desc' : 'asc');
+const truncateSummary = (summary, maxWords) => {
+  const words = summary.split(' ');
+  return words.length > maxWords ? words.slice(0, maxWords).join(' ') + '...' : summary;
+};
+
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
+  '&:hover': {
+    backgroundColor: '#f5f5f5',
+  },
+}));
+
+const MentionsTable = ({ mentions, onKeywordUpdated }) => {
+  const sortedMentions = mentions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const maxDate = sortedMentions.length<=0?null: dayjs(sortedMentions[0].createdAt).startOf('day');
+  const minDate = sortedMentions.length<=0?null: dayjs(sortedMentions[sortedMentions.length-1].createdAt).startOf('day');
+
+  const [keywords, setKeywords] = useState([]);
+  // get keywords
+  const fetchKeywords = async () => {
+    try {
+      const response = await axios.get(url + '/keywords');
+      setKeywords(response.data);
+    } catch (error) {
+      console.error('Failed to fetch keywords:', error);
+    }
   };
+  useEffect(() => {
+    fetchKeywords();
+  }, []);
 
+  // Pagination
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [page, setPage] = useState(0);
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
-
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
-  const sortedMentions = mentions.sort((a, b) => {
-    const orderMultiplier = order === 'asc' ? 1 : -1;
-    if (orderBy === 'sentiment') {
-      return orderMultiplier * a.sentiment.localeCompare(b.sentiment);
+  // Mention Detail Dialogs
+  const [selectedMention, setSelectedMention] = useState(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const handleRowClick = (mention) => {
+    setSelectedMention(mention);
+    setIsDialogOpen(true);
+  };
+
+  // Table filters
+  const [sentimentFilter, setSentimentFilter] = useState('');
+  const [dateFilter, setDateFilter] = useState({ start: null, end: null });
+  const [selectedKeywords, setSelectedKeywords] = useState([]);
+
+  const toggleKeyword = (keyword) => {
+    setSelectedKeywords((prevSelectedKeywords) => {
+      if (prevSelectedKeywords.includes(keyword)) {
+        return prevSelectedKeywords.filter((k) => k !== keyword);
+      } else {
+        return [...prevSelectedKeywords, keyword];
+      }
+    });
+  };
+
+  const applyFilters = (mention) => {
+    let sentimentMatches = true;
+    let dateMatches = true;
+    let keywordsMatches = true;
+
+    if (sentimentFilter) {
+      sentimentMatches = mention.sentiment === sentimentFilter;
     }
-    return orderMultiplier * (new Date(a.createdAt) - new Date(b.createdAt));
-  });
 
-  const paginatedMentions = sortedMentions.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+    const createdAt = new Date(mention.createdAt);
+    createdAt.setHours(0,0,0,0);
 
-  const handleRowHover = (index) => {
-    setHoveredRow(index);
+    if (dateFilter.start) {
+      dateMatches &= createdAt >= dateFilter.start;
+    }
+
+    if (dateFilter.end) {
+      dateMatches &= createdAt <= dateFilter.end;
+    }
+
+    if (selectedKeywords.length > 0) {
+      keywordsMatches &= selectedKeywords.every((keyword) =>
+        mention.keywords.includes(keyword)
+      );
+    }
+
+    return sentimentMatches && dateMatches && keywordsMatches;;
+  };
+  const handleClearDates = () => {
+    setDateFilter({ start: null, end: null });
+  };
+  const filteredMentions = sortedMentions.filter(applyFilters);
+
+  // delete keyword
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [keywordToDelete, setKeywordToDelete] = useState(null);
+  const openDeleteDialog = (keyword) => {
+    setKeywordToDelete(keyword);
+    setDeleteDialogOpen(true);
+  };
+
+  const closeDeleteDialog = () => {
+    setKeywordToDelete(null);
+    setDeleteDialogOpen(false);
+  };
+
+  const deleteKeyword = async () => {
+    try {
+      setSelectedKeywords([]);
+      const k = keywordToDelete;
+      closeDeleteDialog();
+      setNewKeyword('');
+      setMessageType('success');
+      setMessage(
+        'Deleting keyword "' + k +'".\n The process may take a while'
+      );
+      await axios.delete(url + '/keywords?keyword=' + k);
+      fetchKeywords();
+      onKeywordUpdated();
+    } catch (error) {
+      console.error('Failed to delete keyword:', error);
+    }
+  };
+
+  // add keyword
+  const [newKeyword, setNewKeyword] = useState('');
+  const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState('info');
+  const createNewKeyword = () => {
+    setNewKeyword('');
+    setMessageType('success');
+    setMessage(
+      'Adding keyword "' +
+      newKeyword +
+      '".\n The process may take a few minutes as NLP models analyze existing mentions'
+    );
+
+    const submitNewKeyword = async () => {
+      try {
+        await axios.post(url + '/keywords?keyword=' + newKeyword);
+        onKeywordUpdated();
+        fetchKeywords();
+      } catch (error) {
+        if (error.response && error.response.status === 400) {
+          setMessageType('warning');
+          setMessage('Keyword "' + newKeyword + '" already exists.');
+        } else {
+          console.error('Failed to create new keyword:', error);
+        }
+      }
+    };
+    submitNewKeyword();
   };
 
   return (
-    <TableContainer component={Paper}>
-      <Table aria-label="mentions table">
-        <TableHead>
-          <TableRow>
-            <TableCell
-              key="summary"
-              sortDirection={orderBy === 'summary' ? order : false}
-              onClick={() => handleSort('summary')}
-            >
-              Summary
-            </TableCell>
-            <TableCell
-              key="sentiment"
-              sortDirection={orderBy === 'sentiment' ? order : false}
-              onClick={() => handleSort('sentiment')}
-            >
-              Sentiment
-            </TableCell>
-            <TableCell
-              key="createdAt"
-              sortDirection={orderBy === 'createdAt' ? order : false}
-              onClick={() => handleSort('createdAt')}
-            >
-              Created At
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {paginatedMentions.map((mention, index) => (
-            <React.Fragment key={mention.id}>
-              <TableRow key={mention.id}
-                        onMouseEnter={() => handleRowHover(index)}
-                        onMouseLeave={() => handleRowHover(null)}
-              >
-                <TableCell component="th" scope="row">
-                  {mention.summary}
-
-                  {/*{mention.summary}*/}
-                  {/*{index === hoveredRow && (*/}
-                  {/*  <div>{mention.content}</div>*/}
-                  {/*)}*/}
-
+    <Box>
+      <Box display="flex" alignItems="center" mt={2}>
+        <TextField
+          label="Add Keyword"
+          value={newKeyword}
+          onChange={(e) => setNewKeyword(e.target.value)}
+          variant="outlined"
+          size="small"
+        />
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={createNewKeyword}
+          sx={{ marginLeft: '16px' }}
+        >
+          Add
+        </Button>
+      </Box>
+      <Snackbar
+        open={!!message}
+        autoHideDuration={10000}
+        onClose={() => setMessage('')}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert severity={messageType} onClose={() => setMessage('')} sx={{ width: '100%' }}>
+          {message}
+        </Alert>
+      </Snackbar>
+      <Box
+        display="flex"
+        alignItems="center"
+        maxHeight="48px"
+        marginTop={1}
+        sx={{
+          overflowX: 'auto',
+          scrollbarWidth: 'none', // for Firefox
+          '&::-webkit-scrollbar': { // for Chrome and Safari
+            display: 'none',
+          },
+        }}
+      >
+        {keywords.map((keyword) => (
+          <Chip
+            key={keyword}
+            label={keyword}
+            onClick={() => toggleKeyword(keyword)}
+            color={selectedKeywords.includes(keyword) ? 'primary' : 'default'}
+            style={{ margin: '0 4px 4px 0' }}
+            onDelete={() => openDeleteDialog(keyword)}
+            deleteIcon={<Close fontSize='small'/>}
+          />
+        ))}
+      </Box>
+      <Box display="flex" alignItems="center">
+        <FormControl variant="outlined" sx={{ width: '150px', marginRight: '16px', marginTopL: '50px' }}>
+          <InputLabel htmlFor="sentiment-filter">Sentiment</InputLabel>
+          <Select
+            value={sentimentFilter}
+            onChange={(e) => setSentimentFilter(e.target.value)}
+            label="Sentiment"
+            inputProps={{
+              name: 'sentiment',
+              id: 'sentiment-filter',
+            }}
+          >
+            <MenuItem value=""><em>All</em></MenuItem>
+            <MenuItem value="POSITIVE">Positive</MenuItem>
+            <MenuItem value="NEGATIVE">Negative</MenuItem>
+            <MenuItem value="NEUTRAL">Neutral</MenuItem>
+          </Select>
+        </FormControl>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DatePicker
+            label="Start Date"
+            value={dateFilter.start}
+            onChange={(newValue) => {
+              setDateFilter({ ...dateFilter, start: newValue });
+            }}
+            renderInput={(params) => <TextField {...params} size="small" />}
+            minDate={minDate}
+            maxDate={maxDate}
+          />
+          <DatePicker
+            label="End Date"
+            value={dateFilter.end}
+            onChange={(newValue) => {
+              setDateFilter({ ...dateFilter, end: newValue });
+            }}
+            renderInput={(params) => <TextField {...params} size="small" />}
+            minDate={minDate}
+            maxDate={maxDate}
+          />
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={handleClearDates}
+            sx={{ marginLeft: '16px', marginTop: '8px' }}
+          >
+            Clear
+          </Button>
+        </LocalizationProvider>
+      </Box>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Summary</TableCell>
+              <TableCell>Sentiment</TableCell>
+              <TableCell>Created At</TableCell>
+              <TableCell>Keywords</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredMentions.slice(page * rowsPerPage, (page * rowsPerPage) + rowsPerPage).map((mention) => (
+              <StyledTableRow key={mention.id} onClick={() => handleRowClick(mention)}>
+                <TableCell>{truncateSummary(mention.summary, 10)}</TableCell>
+                <TableCell>
+                  {mention.sentiment === "POSITIVE" && <Icon component={ThumbUp} style={{ color:'#0ccaf5'}} />}
+                  {mention.sentiment === "NEGATIVE" && <Icon component={ThumbDown} style={{ color:'red'}} />}
+                  {mention.sentiment === "NEUTRAL" && <Icon component={SentimentNeutral} style={{ color:'orange'}} />}
                 </TableCell>
-                <TableCell>{mention.sentiment}</TableCell>
-                <TableCell>{new Date(mention.createdAt).toLocaleString()}</TableCell>
-              </TableRow>
-              {index === hoveredRow && (
-                <TableRow>
-                  <TableCell colSpan={3}>
-                    <Typography>
-                      <strong>Id in source: </strong>
-                      {mention.id_in_source}
-                      <br />
-                      <strong>Content: </strong>
-                      {mention.content}
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </React.Fragment>
-          ))}
-        </TableBody>
-      </Table>
-      <TablePagination
-        rowsPerPageOptions={[10, 20, 50]}
-        component="div"
-        count={sortedMentions.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
-    </TableContainer>
+                <TableCell>{mention.createdAt}</TableCell>
+                <TableCell>
+                  {mention.keywords.slice(0, 2).map((keyword, index) => (
+                    <Chip key={index} label={keyword} style={{ margin: '0 4px 4px 0' }} />
+                  ))}
+                  {mention.keywords.length > 2 && (
+                    <Chip label="..." style={{ margin: '0 4px 4px 0' }} />
+                  )}
+                </TableCell>
+              </StyledTableRow>
+            ))}
+          </TableBody>
+          {selectedMention &&
+            <MentionDialog
+              mention={selectedMention}
+              isDialogOpen={isDialogOpen}
+              handleOnClose={() => setIsDialogOpen(false)}
+            />
+          }
+        </Table>
+        <TablePagination
+          component="div"
+          count={filteredMentions.length}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={[5, 10, 20, 50]}
+        />
+      </TableContainer>
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={closeDeleteDialog}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">Delete keyword "{keywordToDelete}" ?</DialogTitle>
+        <DialogActions>
+          <Button onClick={closeDeleteDialog} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={deleteKeyword} color="primary" autoFocus>
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
-}
+};
 
 export default MentionsTable;
