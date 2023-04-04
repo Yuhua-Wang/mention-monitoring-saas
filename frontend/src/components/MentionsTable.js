@@ -1,31 +1,20 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Chip,
-  TablePagination,
-  Icon,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  TextField,
-  Box,
-  Button,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip,
+  TablePagination, Icon, Select, MenuItem, FormControl, InputLabel, TextField,
+  Box, Button, Dialog, DialogTitle, DialogActions, Snackbar, Alert
 } from '@mui/material';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { styled } from '@mui/system';
-import { SentimentNeutral, ThumbUp, ThumbDown} from '@mui/icons-material';
+import { SentimentNeutral, ThumbUp, ThumbDown, Close} from '@mui/icons-material';
 import dayjs from 'dayjs';
 
 import MentionDialog from './MentionDialog'
+
+import axios from 'axios';
+const url = "http://localhost:8080"
 
 const truncateSummary = (summary, maxWords) => {
   const words = summary.split(' ');
@@ -38,10 +27,24 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-const MentionsTable = ({ mentions }) => {
+const MentionsTable = ({ mentions, onKeywordUpdated }) => {
   const sortedMentions = mentions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const maxDate = sortedMentions.length<=0?null: dayjs(sortedMentions[0].createdAt).startOf('day');
   const minDate = sortedMentions.length<=0?null: dayjs(sortedMentions[sortedMentions.length-1].createdAt).startOf('day');
+
+  const [keywords, setKeywords] = useState([]);
+  // get keywords
+  const fetchKeywords = async () => {
+    try {
+      const response = await axios.get(url + '/keywords');
+      setKeywords(response.data);
+    } catch (error) {
+      console.error('Failed to fetch keywords:', error);
+    }
+  };
+  useEffect(() => {
+    fetchKeywords();
+  }, []);
 
   // Pagination
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -65,9 +68,22 @@ const MentionsTable = ({ mentions }) => {
   // Table filters
   const [sentimentFilter, setSentimentFilter] = useState('');
   const [dateFilter, setDateFilter] = useState({ start: null, end: null });
+  const [selectedKeywords, setSelectedKeywords] = useState([]);
+
+  const toggleKeyword = (keyword) => {
+    setSelectedKeywords((prevSelectedKeywords) => {
+      if (prevSelectedKeywords.includes(keyword)) {
+        return prevSelectedKeywords.filter((k) => k !== keyword);
+      } else {
+        return [...prevSelectedKeywords, keyword];
+      }
+    });
+  };
+
   const applyFilters = (mention) => {
     let sentimentMatches = true;
     let dateMatches = true;
+    let keywordsMatches = true;
 
     if (sentimentFilter) {
       sentimentMatches = mention.sentiment === sentimentFilter;
@@ -84,15 +100,134 @@ const MentionsTable = ({ mentions }) => {
       dateMatches &= createdAt <= dateFilter.end;
     }
 
-    return sentimentMatches && dateMatches;
+    if (selectedKeywords.length > 0) {
+      keywordsMatches &= selectedKeywords.every((keyword) =>
+        mention.keywords.includes(keyword)
+      );
+    }
+
+    return sentimentMatches && dateMatches && keywordsMatches;;
   };
   const handleClearDates = () => {
     setDateFilter({ start: null, end: null });
   };
   const filteredMentions = sortedMentions.filter(applyFilters);
 
+  // delete keyword
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [keywordToDelete, setKeywordToDelete] = useState(null);
+  const openDeleteDialog = (keyword) => {
+    setKeywordToDelete(keyword);
+    setDeleteDialogOpen(true);
+  };
+
+  const closeDeleteDialog = () => {
+    setKeywordToDelete(null);
+    setDeleteDialogOpen(false);
+  };
+
+  const deleteKeyword = async () => {
+    try {
+      setSelectedKeywords([]);
+      const k = keywordToDelete;
+      closeDeleteDialog();
+      setNewKeyword('');
+      setMessageType('success');
+      setMessage(
+        'Deleting keyword "' + k +'".\n The process may take a while'
+      );
+      await axios.delete(url + '/keywords?keyword=' + k);
+      fetchKeywords();
+      onKeywordUpdated();
+    } catch (error) {
+      console.error('Failed to delete keyword:', error);
+    }
+  };
+
+  // add keyword
+  const [newKeyword, setNewKeyword] = useState('');
+  const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState('info');
+  const createNewKeyword = () => {
+    setNewKeyword('');
+    setMessageType('success');
+    setMessage(
+      'Adding keyword "' +
+      newKeyword +
+      '".\n The process may take a few minutes as NLP models analyze existing mentions'
+    );
+
+    const submitNewKeyword = async () => {
+      try {
+        await axios.post(url + '/keywords?keyword=' + newKeyword);
+        onKeywordUpdated();
+        fetchKeywords();
+      } catch (error) {
+        if (error.response && error.response.status === 400) {
+          setMessageType('warning');
+          setMessage('Keyword "' + newKeyword + '" already exists.');
+        } else {
+          console.error('Failed to create new keyword:', error);
+        }
+      }
+    };
+    submitNewKeyword();
+  };
+
   return (
     <Box>
+      <Box display="flex" alignItems="center" mt={2}>
+        <TextField
+          label="Add Keyword"
+          value={newKeyword}
+          onChange={(e) => setNewKeyword(e.target.value)}
+          variant="outlined"
+          size="small"
+        />
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={createNewKeyword}
+          sx={{ marginLeft: '16px' }}
+        >
+          Add
+        </Button>
+      </Box>
+      <Snackbar
+        open={!!message}
+        autoHideDuration={10000}
+        onClose={() => setMessage('')}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert severity={messageType} onClose={() => setMessage('')} sx={{ width: '100%' }}>
+          {message}
+        </Alert>
+      </Snackbar>
+      <Box
+        display="flex"
+        alignItems="center"
+        maxHeight="48px"
+        marginTop={1}
+        sx={{
+          overflowX: 'auto',
+          scrollbarWidth: 'none', // for Firefox
+          '&::-webkit-scrollbar': { // for Chrome and Safari
+            display: 'none',
+          },
+        }}
+      >
+        {keywords.map((keyword) => (
+          <Chip
+            key={keyword}
+            label={keyword}
+            onClick={() => toggleKeyword(keyword)}
+            color={selectedKeywords.includes(keyword) ? 'primary' : 'default'}
+            style={{ margin: '0 4px 4px 0' }}
+            onDelete={() => openDeleteDialog(keyword)}
+            deleteIcon={<Close fontSize='small'/>}
+          />
+        ))}
+      </Box>
       <Box display="flex" alignItems="center">
         <FormControl variant="outlined" sx={{ width: '150px', marginRight: '16px', marginTopL: '50px' }}>
           <InputLabel htmlFor="sentiment-filter">Sentiment</InputLabel>
@@ -188,9 +323,25 @@ const MentionsTable = ({ mentions }) => {
           onPageChange={handleChangePage}
           rowsPerPage={rowsPerPage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={[10, 20, 50]}
+          rowsPerPageOptions={[5, 10, 20, 50]}
         />
       </TableContainer>
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={closeDeleteDialog}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">Delete keyword "{keywordToDelete}" ?</DialogTitle>
+        <DialogActions>
+          <Button onClick={closeDeleteDialog} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={deleteKeyword} color="primary" autoFocus>
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
