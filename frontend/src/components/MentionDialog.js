@@ -7,9 +7,7 @@ import {
   Box,
   Icon,
 } from '@mui/material';
-import SentimentNeutralIcon from '@mui/icons-material/SentimentNeutral';
-import ThumbUpIcon from '@mui/icons-material/ThumbUp';
-import ThumbDownIcon from '@mui/icons-material/ThumbDown';
+import { SentimentNeutral, ThumbUp, ThumbDown} from '@mui/icons-material';
 
 const MentionDialog = ({ mention, isDialogOpen, handleOnClose }) => {
   const { id, id_in_source, source, sentiment, summary, content, keywords } = mention;
@@ -34,9 +32,9 @@ const MentionDialog = ({ mention, isDialogOpen, handleOnClose }) => {
           <Typography variant="body2" fontWeight="bold" component="span" display="inline">
             Sentiment: &nbsp;
           </Typography>
-          {sentiment === "POSITIVE" && (<Icon component={ThumbUpIcon} style={{ color:'#0ccaf5'}}/>)}
-          {sentiment === "NEGATIVE" && (<Icon component={ThumbDownIcon} style={{ color:'red'}}/>)}
-          {sentiment === "NEUTRAL" && (<Icon component={SentimentNeutralIcon} style={{ color:'orange'}}/>)}
+          {sentiment === "POSITIVE" && (<Icon component={ThumbUp} style={{ color:'#0ccaf5'}}/>)}
+          {sentiment === "NEGATIVE" && (<Icon component={ThumbDown} style={{ color:'red'}}/>)}
+          {sentiment === "NEUTRAL" && (<Icon component={SentimentNeutral} style={{ color:'orange'}}/>)}
           &nbsp;{sentiment}
         </Typography>
         <br/>
