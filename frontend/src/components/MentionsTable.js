@@ -27,7 +27,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-const MentionsTable = ({ mentions, onKeywordUpdated }) => {
+const MentionsTable = ({ mentions, onKeywordUpdated, selectedDateRange }) => {
   const sortedMentions = mentions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const maxDate = sortedMentions.length<=0?null: dayjs(sortedMentions[0].createdAt).startOf('day');
   const minDate = sortedMentions.length<=0?null: dayjs(sortedMentions[sortedMentions.length-1].createdAt).startOf('day');
@@ -69,6 +69,12 @@ const MentionsTable = ({ mentions, onKeywordUpdated }) => {
   const [sentimentFilter, setSentimentFilter] = useState('');
   const [dateFilter, setDateFilter] = useState({ start: null, end: null });
   const [selectedKeywords, setSelectedKeywords] = useState([]);
+
+  useEffect(() => {
+    if (selectedDateRange.start && selectedDateRange.end) {
+      setDateFilter(selectedDateRange);
+    }
+  }, [selectedDateRange]);
 
   const toggleKeyword = (keyword) => {
     setSelectedKeywords((prevSelectedKeywords) => {

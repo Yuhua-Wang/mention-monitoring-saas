@@ -53,7 +53,7 @@ const groupByTime = (mentions, timeUnit, limit) => {
   return chartData;
 };
 
-const MentionsPlot = ({ mentions }) => {
+const MentionsPlot = ({ mentions, onDataPointClick}) => {
   const [timeUnit, setTimeUnit] = useState("month");
   const [showPositiveMean, setShowPositiveMean] = useState(false);
   const [showNegativeMean, setShowNegativeMean] = useState(false);
@@ -125,6 +125,24 @@ const MentionsPlot = ({ mentions }) => {
     setNegativeMean(initialMeanCounts.NEGATIVE);
   }, [chartData, defaultStartIndex, timeUnit, calculateMeanCounts]);
 
+  const handleDataPointClick = (data) => {
+    if (onDataPointClick && data && data.activePayload) {
+      onDataPointClick(data);
+      const startDate = dayjs(data.activePayload[0].payload.date);
+      let endDate = startDate;
+      if (timeUnit === 'week') {
+        endDate = startDate.add(6, 'day');
+      }
+      if (timeUnit === 'month') {
+        endDate = startDate.add(1, 'month');
+        endDate = endDate.subtract(1, 'day');
+      }
+      console.log(startDate);
+      console.log(endDate);
+      onDataPointClick(startDate, endDate);
+    }
+  };
+
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
@@ -155,6 +173,7 @@ const MentionsPlot = ({ mentions }) => {
     return null;
   };
 
+
   return (
     <div>
       <ResponsiveContainer width="100%" height={430}>
@@ -166,6 +185,7 @@ const MentionsPlot = ({ mentions }) => {
             left: 20,
             bottom: 5,
           }}
+          onClick={handleDataPointClick}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" />
