@@ -137,8 +137,6 @@ const MentionsPlot = ({ mentions, onDataPointClick}) => {
         endDate = startDate.add(1, 'month');
         endDate = endDate.subtract(1, 'day');
       }
-      console.log(startDate);
-      console.log(endDate);
       onDataPointClick(startDate, endDate);
     }
   };
