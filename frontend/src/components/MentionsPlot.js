@@ -17,7 +17,7 @@ import isoWeek from "dayjs/plugin/isoWeek";
 dayjs.extend(weekOfYear);
 dayjs.extend(isoWeek);
 
-const groupByTime = (mentions, timeUnit, limit) => {
+const groupByTime = (mentions, timeUnit, limit, weightedValues) => {
   const format = {
     day: "YYYY-MM-DD",
     week: "YYYY-MM-DD",
@@ -42,7 +42,8 @@ const groupByTime = (mentions, timeUnit, limit) => {
       acc[date] = { ...initialValue, date };
     }
 
-    acc[date][mention.sentiment]++;
+    const value = weightedValues ? mention.content.split(" ").length : 1;
+    acc[date][mention.sentiment] += value;
     return acc;
   }, {});
 
@@ -57,6 +58,7 @@ const MentionsPlot = ({ mentions, onDataPointClick}) => {
   const [timeUnit, setTimeUnit] = useState("month");
   const [showPositiveMean, setShowPositiveMean] = useState(false);
   const [showNegativeMean, setShowNegativeMean] = useState(false);
+  const [weightedValues, setWeightedValues] = useState(false);
 
   const limit = {
     day: 180,
@@ -65,8 +67,8 @@ const MentionsPlot = ({ mentions, onDataPointClick}) => {
   };
 
   const chartData = useMemo(
-    () => groupByTime(mentions, timeUnit, limit[timeUnit]),
-    [mentions, timeUnit]
+    () => groupByTime(mentions, timeUnit, limit[timeUnit], weightedValues),
+    [mentions, timeUnit, weightedValues]
   );
 
   const defaultStartIndex = useMemo(() => {
@@ -143,30 +145,57 @@ const MentionsPlot = ({ mentions, onDataPointClick}) => {
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
-      return (
-        <div
-          className="custom-tooltip"
-          style={{
-            backgroundColor: "white",
-            border: "1px solid #ccc",
-            padding: "10px",
-            borderRadius: "5px",
-          }}
-        >
-          <p className="label" style={{ fontWeight: "bold", marginBottom: "5px" }}>
-            {label} ({timeUnit})
-          </p>
-          <p>Positive Mentions: {payload[0].value}</p>
-          {showPositiveMean && (
-            <p>Mean Positive Mentions: {positiveMean.toFixed(2)}</p>
-          )}
-          <p>Negative Mentions: {payload[1].value}</p>
-          {showNegativeMean && (
-            <p>Mean Negative Mentions: {negativeMean.toFixed(2)}</p>
-          )}
-          <p>Neutral Mentions: {payload[2].value}</p>
-        </div>
-      );
+      if (!weightedValues) {
+        return (
+          <div
+            className="custom-tooltip"
+            style={{
+              backgroundColor: "white",
+              border: "1px solid #ccc",
+              padding: "10px",
+              borderRadius: "5px",
+            }}
+          >
+            <p className="label" style={{ fontWeight: "bold", marginBottom: "5px" }}>
+              Mention Count: {label} ({timeUnit})
+            </p>
+            <p>Positive Mentions: {payload[0].value}</p>
+            {showPositiveMean && (
+              <p>Mean Positive Mentions: {positiveMean.toFixed(2)}</p>
+            )}
+            <p>Negative Mentions: {payload[1].value}</p>
+            {showNegativeMean && (
+              <p>Mean Negative Mentions: {negativeMean.toFixed(2)}</p>
+            )}
+            <p>Neutral Mentions: {payload[2].value}</p>
+          </div>
+        );
+      } else {
+        return (
+          <div
+            className="custom-tooltip"
+            style={{
+              backgroundColor: "white",
+              border: "1px solid #ccc",
+              padding: "10px",
+              borderRadius: "5px",
+            }}
+          >
+            <p className="label" style={{ fontWeight: "bold", marginBottom: "5px" }}>
+              Weighted Score: {label} ({timeUnit})
+            </p>
+            <p>Positive Score: {payload[0].value}</p>
+            {showPositiveMean && (
+              <p>Mean Positive Score: {positiveMean.toFixed(2)}</p>
+            )}
+            <p>Negative Score: {payload[1].value}</p>
+            {showNegativeMean && (
+              <p>Mean Negative Score: {negativeMean.toFixed(2)}</p>
+            )}
+            <p>Neutral Score: {payload[2].value}</p>
+          </div>
+        );
+      }
     }
     return null;
   };
@@ -266,6 +295,14 @@ const MentionsPlot = ({ mentions, onDataPointClick}) => {
           onChange={(e) => setShowNegativeMean(e.target.checked)}
         />
         show mean negative mentions
+      </label>
+      <label>
+        <input
+          type="checkbox"
+          checked={weightedValues}
+          onChange={(e) => setWeightedValues(e.target.checked)}
+        />
+        show weighted values
       </label>
     </div>
   );

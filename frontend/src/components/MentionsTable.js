@@ -76,6 +76,10 @@ const MentionsTable = ({ mentions, onKeywordUpdated, selectedDateRange }) => {
     }
   }, [selectedDateRange]);
 
+  useEffect(() => {
+    setPage(0);
+  }, [sentimentFilter, dateFilter, selectedKeywords]);
+
   const toggleKeyword = (keyword) => {
     setSelectedKeywords((prevSelectedKeywords) => {
       if (prevSelectedKeywords.includes(keyword)) {
