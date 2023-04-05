@@ -61,9 +61,9 @@ const MentionsPlot = ({ mentions, onDataPointClick}) => {
   const [weightedValues, setWeightedValues] = useState(false);
 
   const limit = {
-    day: 180,
-    week: 30,
-    month: 30,
+    day: 1800,
+    week: 256,
+    month: 64,
   };
 
   const chartData = useMemo(
@@ -72,11 +72,10 @@ const MentionsPlot = ({ mentions, onDataPointClick}) => {
   );
 
   const defaultStartIndex = useMemo(() => {
-    const currentChartData = groupByTime(mentions, "day", limit.day);
     return {
-      day: Math.max(0, currentChartData.length - 30),
-      week: 0,
-      month: 0,
+      day: Math.max(0, groupByTime(mentions, 'day', limit.day).length - 30),
+      week: Math.max(0, groupByTime(mentions, 'week', limit.week).length - 30),
+      month: Math.max(0, groupByTime(mentions, 'month', limit.month).length - 30),
     };
   }, [mentions]);
 
@@ -286,7 +285,7 @@ const MentionsPlot = ({ mentions, onDataPointClick}) => {
           checked={showPositiveMean}
           onChange={(e) => setShowPositiveMean(e.target.checked)}
         />
-        show mean positive mentions
+        show positive mean
       </label>
       <label>
         <input
@@ -294,7 +293,7 @@ const MentionsPlot = ({ mentions, onDataPointClick}) => {
           checked={showNegativeMean}
           onChange={(e) => setShowNegativeMean(e.target.checked)}
         />
-        show mean negative mentions
+        show negative mean
       </label>
       <label>
         <input
@@ -302,7 +301,7 @@ const MentionsPlot = ({ mentions, onDataPointClick}) => {
           checked={weightedValues}
           onChange={(e) => setWeightedValues(e.target.checked)}
         />
-        show weighted values
+        use weighted values
       </label>
     </div>
   );
