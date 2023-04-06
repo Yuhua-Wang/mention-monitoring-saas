@@ -13,6 +13,8 @@ import {
 import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
 import isoWeek from "dayjs/plugin/isoWeek";
+import {Box, FormControlLabel, Radio, RadioGroup, Switch} from "@mui/material";
+import MentionStatsCard from "./MentionStatsCard";
 
 dayjs.extend(weekOfYear);
 dayjs.extend(isoWeek);
@@ -167,6 +169,11 @@ const MentionsPlot = ({ mentions, onDataPointClick}) => {
               <p>Mean Negative Mentions: {negativeMean.toFixed(2)}</p>
             )}
             <p>Neutral Mentions: {payload[2].value}</p>
+            <p>Positive Ratio:
+              {
+                ((payload[0].value/(payload[0].value+payload[1].value+payload[2].value))*100).toFixed(1)
+              }%
+            </p>
           </div>
         );
       } else {
@@ -192,6 +199,11 @@ const MentionsPlot = ({ mentions, onDataPointClick}) => {
               <p>Mean Negative Score: {negativeMean.toFixed(2)}</p>
             )}
             <p>Neutral Score: {payload[2].value}</p>
+            <p>Positive Ratio:
+              {
+                ((payload[0].value/(payload[0].value+payload[1].value+payload[2].value))*100).toFixed(1)
+              }%
+            </p>
           </div>
         );
       }
@@ -201,109 +213,134 @@ const MentionsPlot = ({ mentions, onDataPointClick}) => {
 
 
   return (
-    <div>
-      <ResponsiveContainer width="100%" height={430}>
-        <LineChart
-          data={chartData}
-          margin={{
-            top: 5,
-            right: 30,
-            left: 20,
-            bottom: 5,
-          }}
-          onClick={handleDataPointClick}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="date" />
-          <YAxis />
-          <Tooltip content={<CustomTooltip />} />
-          <Legend />
-          <Line
-            type="monotone"
-            dataKey="POSITIVE"
-            name="Positive Mentions"
-            stroke="#0ccaf5"
-            activeDot={{ r: 8 }}
-            strokeWidth={2}
-          />
-          <Line
-            type="monotone"
-            dataKey="NEGATIVE"
-            name="Negative Mentions"
-            stroke="red"
-            activeDot={{ r: 8 }}
-            strokeWidth={2}
-          />
-          <Line
-            type="monotone"
-            dataKey="NEUTRAL"
-            name="Neutral Mentions"
-            stroke="orange"
-            activeDot={{ r: 8 }}
-            strokeWidth={2}
-          />
-          {showPositiveMean && (
-            <Line
-              type="step"
-              dataKey={() => positiveMean}
-              name="Mean Positive Mentions"
-              stroke="#0ccaf5"
-              strokeDasharray="5 5"
-              strokeWidth={1}
+    <Box>
+      <Box display="flex" flexDirection="row">
+        <Box flex="1 1 33%">
+          <MentionStatsCard mentions={mentions} selectedTimeFrame={timeUnit}/>
+          <RadioGroup
+            row
+            value={timeUnit}
+            onChange={(e) => setTimeUnit(e.target.value)}
+          >
+            <FormControlLabel
+              value="day"
+              control={<Radio />}
+              label="Daily"
             />
-          )}
-          {showNegativeMean && (
-            <Line
-              type="step"
-              dataKey={() => negativeMean}
-              name="Mean Negative Mentions"
-              stroke="red"
-              strokeDasharray="5 5"
-              strokeWidth={1}
+            <FormControlLabel
+              value="week"
+              control={<Radio />}
+              label="Weekly"
             />
-          )}
-          <Brush
-            dataKey="date"
-            height={30}
-            stroke="#268aed"
-            startIndex={defaultStartIndex[timeUnit]}
-            onChange={handleBrushChange}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-      <select
-        value={timeUnit}
-        onChange={(e) => setTimeUnit(e.target.value)}
-      >
-        <option value="day">Day</option>
-        <option value="week">Week</option>
-        <option value="month">Month</option>
-      </select>
-      <label>
-        <input
-          type="checkbox"
-          checked={showPositiveMean}
-          onChange={(e) => setShowPositiveMean(e.target.checked)}
-        />
-        show positive mean
-      </label>
-      <label>
-        <input
-          type="checkbox"
-          checked={showNegativeMean}
-          onChange={(e) => setShowNegativeMean(e.target.checked)}
-        />
-        show negative mean
-      </label>
-      <label>
-        <input
-          type="checkbox"
-          checked={weightedValues}
-          onChange={(e) => setWeightedValues(e.target.checked)}
-        />
-        use weighted values
-      </label>
-    </div>
+            <FormControlLabel
+              value="month"
+              control={<Radio />}
+              label="Monthly"
+            />
+          </RadioGroup>
+          <Box display="flex" flexDirection="column" alignItems="flex-start">
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showPositiveMean}
+                  onChange={(e) => setShowPositiveMean(e.target.checked)}
+                />
+              }
+              label="Show positive mean"
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showNegativeMean}
+                  onChange={(e) => setShowNegativeMean(e.target.checked)}
+                />
+              }
+              label="Show negative mean"
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={weightedValues}
+                  onChange={(e) => setWeightedValues(e.target.checked)}
+                />
+              }
+              label="Use weighted values"
+            />
+          </Box>
+        </Box>
+        <Box flex="1 1 67%">
+          <ResponsiveContainer width="100%" height={430}>
+            <LineChart
+              data={chartData}
+              margin={{
+                top: 5,
+                right: 30,
+                left: 20,
+                bottom: 5,
+              }}
+              onClick={handleDataPointClick}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="POSITIVE"
+                name="Positive Mentions"
+                stroke="#0ccaf5"
+                activeDot={{ r: 8 }}
+                strokeWidth={2}
+              />
+              <Line
+                type="monotone"
+                dataKey="NEGATIVE"
+                name="Negative Mentions"
+                stroke="red"
+                activeDot={{ r: 8 }}
+                strokeWidth={2}
+              />
+              <Line
+                type="monotone"
+                dataKey="NEUTRAL"
+                name="Neutral Mentions"
+                stroke="orange"
+                activeDot={{ r: 8 }}
+                strokeWidth={2}
+              />
+              {showPositiveMean && (
+                <Line
+                  type="step"
+                  dataKey={() => positiveMean}
+                  name="Mean Positive Mentions"
+                  stroke="#0ccaf5"
+                  strokeDasharray="5 5"
+                  strokeWidth={1}
+                />
+              )}
+              {showNegativeMean && (
+                <Line
+                  type="step"
+                  dataKey={() => negativeMean}
+                  name="Mean Negative Mentions"
+                  stroke="red"
+                  strokeDasharray="5 5"
+                  strokeWidth={1}
+                />
+              )}
+              <Brush
+                dataKey="date"
+                height={30}
+                stroke="#268aed"
+                startIndex={defaultStartIndex[timeUnit]}
+                onChange={handleBrushChange}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 
