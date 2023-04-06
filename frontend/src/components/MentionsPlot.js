@@ -60,7 +60,7 @@ const MentionsPlot = ({ mentions, onDataPointClick}) => {
   const [timeUnit, setTimeUnit] = useState("month");
   const [showPositiveMean, setShowPositiveMean] = useState(false);
   const [showNegativeMean, setShowNegativeMean] = useState(false);
-  const [weightedValues, setWeightedValues] = useState(false);
+  const [weightedScore, setWeightedScore] = useState(false);
 
   const limit = {
     day: 1800,
@@ -69,8 +69,8 @@ const MentionsPlot = ({ mentions, onDataPointClick}) => {
   };
 
   const chartData = useMemo(
-    () => groupByTime(mentions, timeUnit, limit[timeUnit], weightedValues),
-    [mentions, timeUnit, weightedValues]
+    () => groupByTime(mentions, timeUnit, limit[timeUnit], weightedScore),
+    [mentions, timeUnit, weightedScore]
   );
 
   const defaultStartIndex = useMemo(() => {
@@ -146,7 +146,7 @@ const MentionsPlot = ({ mentions, onDataPointClick}) => {
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
-      if (!weightedValues) {
+      if (!weightedScore) {
         return (
           <div
             className="custom-tooltip"
@@ -216,7 +216,11 @@ const MentionsPlot = ({ mentions, onDataPointClick}) => {
     <Box>
       <Box display="flex" flexDirection="row">
         <Box flex="1 1 33%">
-          <MentionStatsCard mentions={mentions} selectedTimeFrame={timeUnit}/>
+          <MentionStatsCard
+            mentions={mentions}
+            selectedTimeFrame={timeUnit}
+            useWeightedScore={weightedScore}
+          />
           <RadioGroup
             row
             value={timeUnit}
@@ -260,11 +264,11 @@ const MentionsPlot = ({ mentions, onDataPointClick}) => {
             <FormControlLabel
               control={
                 <Switch
-                  checked={weightedValues}
-                  onChange={(e) => setWeightedValues(e.target.checked)}
+                  checked={weightedScore}
+                  onChange={(e) => setWeightedScore(e.target.checked)}
                 />
               }
-              label="Use weighted values"
+              label="Use weighted scores"
             />
           </Box>
         </Box>

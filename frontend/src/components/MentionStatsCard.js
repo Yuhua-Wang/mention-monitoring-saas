@@ -37,13 +37,13 @@ const getStartOf = (timeFrame, mentions) => {
 };
 
 
-const countSentiments = (mentions, startDate, endDate) => {
+const countSentiments = (mentions, startDate, endDate, weightedScore) => {
   return mentions.reduce(
     (acc, mention) => {
       const createdAt = dayjs(mention.createdAt);
-
       if (createdAt.isBetween(startDate, endDate, null, '[]')) {
-        acc[mention.sentiment.toLowerCase()]++;
+        const value = weightedScore ? mention.content.split(" ").length : 1;
+        acc[mention.sentiment.toLowerCase()]+=value;
       }
 
       return acc;
@@ -53,7 +53,7 @@ const countSentiments = (mentions, startDate, endDate) => {
 };
 
 
-const MentionStatsCard = ({ mentions, selectedTimeFrame }) => {
+const MentionStatsCard = ({ mentions, selectedTimeFrame, useWeightedScore }) => {
   const [timeFrame, setTimeFrame] = useState('month');
   const [mentionStats, setMentionStats] = useState({
     positive: {current: 0, previous: 0},
@@ -61,6 +61,11 @@ const MentionStatsCard = ({ mentions, selectedTimeFrame }) => {
     neutral: {current: 0, previous: 0},
     ratio: {current: 0, previous: 0}
   });
+  const [weightedScore, setWeightedScore] = useState(false);
+
+  useEffect(() => {
+    setWeightedScore(useWeightedScore);
+  }, [useWeightedScore])
 
   useEffect(() => {
     setTimeFrame(selectedTimeFrame)
@@ -74,8 +79,8 @@ const MentionStatsCard = ({ mentions, selectedTimeFrame }) => {
       const previousStart = currentStart.clone().subtract(1, timeFrame === 'day' ? 'day' : timeFrame === 'week' ? 'week' : 'month');
       const previousEnd = currentStart.subtract(1, 'day');
 
-      const currentCounts = countSentiments(mentions, currentStart, currentEnd);
-      const previousCounts = countSentiments(mentions, previousStart, previousEnd);
+      const currentCounts = countSentiments(mentions, currentStart, currentEnd, weightedScore);
+      const previousCounts = countSentiments(mentions, previousStart, previousEnd, weightedScore);
 
       setMentionStats({
         positive: {current: currentCounts.positive, previous: previousCounts.positive},
@@ -89,7 +94,7 @@ const MentionStatsCard = ({ mentions, selectedTimeFrame }) => {
     };
 
     calculateMentionStats();
-  }, [mentions, timeFrame]);
+  }, [mentions, timeFrame, weightedScore]);
 
   return (
     <Card>
