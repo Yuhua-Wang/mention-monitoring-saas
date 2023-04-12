@@ -292,7 +292,7 @@ const MentionsPlot = ({ mentions, onDataPointClick}) => {
               <Line
                 type="monotone"
                 dataKey="POSITIVE"
-                name="Positive Mentions"
+                name="Positive"
                 stroke="#0ccaf5"
                 activeDot={{ r: 8 }}
                 strokeWidth={2}
@@ -300,7 +300,7 @@ const MentionsPlot = ({ mentions, onDataPointClick}) => {
               <Line
                 type="monotone"
                 dataKey="NEGATIVE"
-                name="Negative Mentions"
+                name="Negative"
                 stroke="red"
                 activeDot={{ r: 8 }}
                 strokeWidth={2}
@@ -308,7 +308,7 @@ const MentionsPlot = ({ mentions, onDataPointClick}) => {
               <Line
                 type="monotone"
                 dataKey="NEUTRAL"
-                name="Neutral Mentions"
+                name="Neutral"
                 stroke="orange"
                 activeDot={{ r: 8 }}
                 strokeWidth={2}
@@ -317,7 +317,7 @@ const MentionsPlot = ({ mentions, onDataPointClick}) => {
                 <Line
                   type="step"
                   dataKey={() => positiveMean}
-                  name="Mean Positive Mentions"
+                  name="Mean Positive"
                   stroke="#0ccaf5"
                   strokeDasharray="5 5"
                   strokeWidth={1}
@@ -327,7 +327,7 @@ const MentionsPlot = ({ mentions, onDataPointClick}) => {
                 <Line
                   type="step"
                   dataKey={() => negativeMean}
-                  name="Mean Negative Mentions"
+                  name="Mean Negative"
                   stroke="red"
                   strokeDasharray="5 5"
                   strokeWidth={1}

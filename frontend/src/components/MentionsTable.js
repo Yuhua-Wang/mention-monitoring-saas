@@ -186,23 +186,6 @@ const MentionsTable = ({ mentions, onKeywordUpdated, selectedDateRange }) => {
 
   return (
     <Box>
-      <Box display="flex" alignItems="center" mt={2}>
-        <TextField
-          label="Add Keyword"
-          value={newKeyword}
-          onChange={(e) => setNewKeyword(e.target.value)}
-          variant="outlined"
-          size="small"
-        />
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={createNewKeyword}
-          sx={{ marginLeft: '16px' }}
-        >
-          Add
-        </Button>
-      </Box>
       <Snackbar
         open={!!message}
         autoHideDuration={10000}
@@ -213,6 +196,74 @@ const MentionsTable = ({ mentions, onKeywordUpdated, selectedDateRange }) => {
           {message}
         </Alert>
       </Snackbar>
+      <Box display="flex" alignItems="center">
+        <Box display="flex" alignItems="center" mt={2}>
+          <TextField
+            label="Add Keyword"
+            value={newKeyword}
+            onChange={(e) => setNewKeyword(e.target.value)}
+            variant="outlined"
+            sx={{ height: '40px', marginTop: '-15px' }}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={createNewKeyword}
+            sx={{ marginLeft: '16px', height: '40px' }}
+          >
+            Add
+          </Button>
+        </Box>
+        <FormControl variant="outlined" sx={{ width: '150px', marginRight: '16px', marginLeft: '16px', height: '40px' }}>
+          <InputLabel htmlFor="sentiment-filter">Sentiment</InputLabel>
+          <Select
+            value={sentimentFilter}
+            onChange={(e) => setSentimentFilter(e.target.value)}
+            label="Sentiment"
+            inputProps={{
+              name: 'sentiment',
+              id: 'sentiment-filter',
+            }}
+          >
+            <MenuItem value=""><em>All</em></MenuItem>
+            <MenuItem value="POSITIVE">Positive</MenuItem>
+            <MenuItem value="NEGATIVE">Negative</MenuItem>
+            <MenuItem value="NEUTRAL">Neutral</MenuItem>
+          </Select>
+        </FormControl>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DatePicker
+            label="Start Date"
+            value={dateFilter.start}
+            onChange={(newValue) => {
+              setDateFilter({ ...dateFilter, start: newValue });
+            }}
+            renderInput={(params) => <TextField {...params} size="small"/>}
+            minDate={minDate}
+            maxDate={maxDate}
+            sx={{ marginTop: '15px' }}
+          />
+          <DatePicker
+            label="End Date"
+            value={dateFilter.end}
+            onChange={(newValue) => {
+              setDateFilter({ ...dateFilter, end: newValue });
+            }}
+            renderInput={(params) => <TextField {...params} size="small" />}
+            minDate={minDate}
+            maxDate={maxDate}
+            sx={{ marginTop: '15px' }}
+          />
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={handleClearDates}
+            sx={{ marginLeft: '16px', marginTop: '8px', height: '40px' }}
+          >
+            Clear
+          </Button>
+        </LocalizationProvider>
+      </Box>
       <Box
         display="flex"
         alignItems="center"
@@ -237,55 +288,6 @@ const MentionsTable = ({ mentions, onKeywordUpdated, selectedDateRange }) => {
             deleteIcon={<Close fontSize='small'/>}
           />
         ))}
-      </Box>
-      <Box display="flex" alignItems="center">
-        <FormControl variant="outlined" sx={{ width: '150px', marginRight: '16px', marginTopL: '50px' }}>
-          <InputLabel htmlFor="sentiment-filter">Sentiment</InputLabel>
-          <Select
-            value={sentimentFilter}
-            onChange={(e) => setSentimentFilter(e.target.value)}
-            label="Sentiment"
-            inputProps={{
-              name: 'sentiment',
-              id: 'sentiment-filter',
-            }}
-          >
-            <MenuItem value=""><em>All</em></MenuItem>
-            <MenuItem value="POSITIVE">Positive</MenuItem>
-            <MenuItem value="NEGATIVE">Negative</MenuItem>
-            <MenuItem value="NEUTRAL">Neutral</MenuItem>
-          </Select>
-        </FormControl>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DatePicker
-            label="Start Date"
-            value={dateFilter.start}
-            onChange={(newValue) => {
-              setDateFilter({ ...dateFilter, start: newValue });
-            }}
-            renderInput={(params) => <TextField {...params} size="small" />}
-            minDate={minDate}
-            maxDate={maxDate}
-          />
-          <DatePicker
-            label="End Date"
-            value={dateFilter.end}
-            onChange={(newValue) => {
-              setDateFilter({ ...dateFilter, end: newValue });
-            }}
-            renderInput={(params) => <TextField {...params} size="small" />}
-            minDate={minDate}
-            maxDate={maxDate}
-          />
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={handleClearDates}
-            sx={{ marginLeft: '16px', marginTop: '8px' }}
-          >
-            Clear
-          </Button>
-        </LocalizationProvider>
       </Box>
       <TableContainer component={Paper}>
         <Table>

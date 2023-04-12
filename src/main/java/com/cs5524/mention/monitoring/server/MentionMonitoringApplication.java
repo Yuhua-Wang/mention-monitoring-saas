@@ -9,6 +9,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Date;
@@ -18,6 +20,7 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 @SpringBootApplication
 @RestController
+@EnableScheduling
 public class MentionMonitoringApplication {
 
 	@Autowired
@@ -61,11 +64,20 @@ public class MentionMonitoringApplication {
 
 	// Mentions
 	@GetMapping("/fetchMentions")
-	public ResponseEntity<?> fetchMentions() {
-        Integer lastID = mentionService.getLastCollected();
-        lastID = lastID==null?-1:lastID;
-		airbnbAdaptor.getData(lastID);
+	public ResponseEntity<?> fetchMentionsEndpoint() {
+        fetchMentions();
 		return ResponseEntity.ok("success");
+	}
+
+	public void fetchMentions() {
+		Integer lastID = mentionService.getLastCollected();
+		lastID = lastID == null ? -1 : lastID;
+		airbnbAdaptor.getData(lastID);
+	}
+
+	@Scheduled(cron = "0 0 0 * * ?")
+	public void scheduledFetchMentions() {
+		fetchMentions();
 	}
 
 	@GetMapping("/mentions")
