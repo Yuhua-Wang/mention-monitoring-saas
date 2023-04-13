@@ -9,10 +9,10 @@ import DocumentScannerOutlinedIcon from '@mui/icons-material/DocumentScannerOutl
 
 const pages = ['Trend', 'Mentions'];
 
-function Appbar() {
+function Appbar({moveToElement}) {
 
     return (
-        <AppBar position="static">
+        <AppBar position="sticky">
             <Container maxWidth="xl">
                 <Toolbar disableGutters>
                     <DocumentScannerOutlinedIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
@@ -34,15 +34,20 @@ function Appbar() {
                         Mention Monitoring
                     </Typography>
                     <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-                        {pages.map((page) => (
-                            <Button
-                                key={page}
-                                // onClick={}
-                                sx={{ my: 2, color: 'white', display: 'block' }}
-                            >
-                                {page}
-                            </Button>
-                        ))}
+                      <Button
+                        key='plot'
+                        onClick={() => moveToElement('MentionsPlot')}
+                        sx={{ my: 2, color: 'white', display: 'block' }}
+                      >
+                        Trend
+                      </Button>
+                      <Button
+                        key='table'
+                        onClick={() => moveToElement('mentionsTable')}
+                        sx={{ my: 2, color: 'white', display: 'block' }}
+                      >
+                        Mentions
+                      </Button>
                     </Box>
                 </Toolbar>
             </Container>

@@ -27,7 +27,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-const MentionsTable = ({ mentions, onKeywordUpdated }) => {
+const MentionsTable = ({ mentions, onKeywordUpdated, selectedDateRange }) => {
   const sortedMentions = mentions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const maxDate = sortedMentions.length<=0?null: dayjs(sortedMentions[0].createdAt).startOf('day');
   const minDate = sortedMentions.length<=0?null: dayjs(sortedMentions[sortedMentions.length-1].createdAt).startOf('day');
@@ -69,6 +69,16 @@ const MentionsTable = ({ mentions, onKeywordUpdated }) => {
   const [sentimentFilter, setSentimentFilter] = useState('');
   const [dateFilter, setDateFilter] = useState({ start: null, end: null });
   const [selectedKeywords, setSelectedKeywords] = useState([]);
+
+  useEffect(() => {
+    if (selectedDateRange.start && selectedDateRange.end) {
+      setDateFilter(selectedDateRange);
+    }
+  }, [selectedDateRange]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [sentimentFilter, dateFilter, selectedKeywords]);
 
   const toggleKeyword = (keyword) => {
     setSelectedKeywords((prevSelectedKeywords) => {
@@ -176,23 +186,6 @@ const MentionsTable = ({ mentions, onKeywordUpdated }) => {
 
   return (
     <Box>
-      <Box display="flex" alignItems="center" mt={2}>
-        <TextField
-          label="Add Keyword"
-          value={newKeyword}
-          onChange={(e) => setNewKeyword(e.target.value)}
-          variant="outlined"
-          size="small"
-        />
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={createNewKeyword}
-          sx={{ marginLeft: '16px' }}
-        >
-          Add
-        </Button>
-      </Box>
       <Snackbar
         open={!!message}
         autoHideDuration={10000}
@@ -203,6 +196,74 @@ const MentionsTable = ({ mentions, onKeywordUpdated }) => {
           {message}
         </Alert>
       </Snackbar>
+      <Box display="flex" alignItems="center">
+        <Box display="flex" alignItems="center" mt={2}>
+          <TextField
+            label="Add Keyword"
+            value={newKeyword}
+            onChange={(e) => setNewKeyword(e.target.value)}
+            variant="outlined"
+            sx={{ height: '40px', marginTop: '-15px' }}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={createNewKeyword}
+            sx={{ marginLeft: '16px', height: '40px' }}
+          >
+            Add
+          </Button>
+        </Box>
+        <FormControl variant="outlined" sx={{ width: '150px', marginRight: '16px', marginLeft: '16px', height: '40px' }}>
+          <InputLabel htmlFor="sentiment-filter">Sentiment</InputLabel>
+          <Select
+            value={sentimentFilter}
+            onChange={(e) => setSentimentFilter(e.target.value)}
+            label="Sentiment"
+            inputProps={{
+              name: 'sentiment',
+              id: 'sentiment-filter',
+            }}
+          >
+            <MenuItem value=""><em>All</em></MenuItem>
+            <MenuItem value="POSITIVE">Positive</MenuItem>
+            <MenuItem value="NEGATIVE">Negative</MenuItem>
+            <MenuItem value="NEUTRAL">Neutral</MenuItem>
+          </Select>
+        </FormControl>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DatePicker
+            label="Start Date"
+            value={dateFilter.start}
+            onChange={(newValue) => {
+              setDateFilter({ ...dateFilter, start: newValue });
+            }}
+            renderInput={(params) => <TextField {...params} size="small"/>}
+            minDate={minDate}
+            maxDate={maxDate}
+            sx={{ marginTop: '15px' }}
+          />
+          <DatePicker
+            label="End Date"
+            value={dateFilter.end}
+            onChange={(newValue) => {
+              setDateFilter({ ...dateFilter, end: newValue });
+            }}
+            renderInput={(params) => <TextField {...params} size="small" />}
+            minDate={minDate}
+            maxDate={maxDate}
+            sx={{ marginTop: '15px' }}
+          />
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={handleClearDates}
+            sx={{ marginLeft: '16px', marginTop: '8px', height: '40px' }}
+          >
+            Clear
+          </Button>
+        </LocalizationProvider>
+      </Box>
       <Box
         display="flex"
         alignItems="center"
@@ -227,55 +288,6 @@ const MentionsTable = ({ mentions, onKeywordUpdated }) => {
             deleteIcon={<Close fontSize='small'/>}
           />
         ))}
-      </Box>
-      <Box display="flex" alignItems="center">
-        <FormControl variant="outlined" sx={{ width: '150px', marginRight: '16px', marginTopL: '50px' }}>
-          <InputLabel htmlFor="sentiment-filter">Sentiment</InputLabel>
-          <Select
-            value={sentimentFilter}
-            onChange={(e) => setSentimentFilter(e.target.value)}
-            label="Sentiment"
-            inputProps={{
-              name: 'sentiment',
-              id: 'sentiment-filter',
-            }}
-          >
-            <MenuItem value=""><em>All</em></MenuItem>
-            <MenuItem value="POSITIVE">Positive</MenuItem>
-            <MenuItem value="NEGATIVE">Negative</MenuItem>
-            <MenuItem value="NEUTRAL">Neutral</MenuItem>
-          </Select>
-        </FormControl>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DatePicker
-            label="Start Date"
-            value={dateFilter.start}
-            onChange={(newValue) => {
-              setDateFilter({ ...dateFilter, start: newValue });
-            }}
-            renderInput={(params) => <TextField {...params} size="small" />}
-            minDate={minDate}
-            maxDate={maxDate}
-          />
-          <DatePicker
-            label="End Date"
-            value={dateFilter.end}
-            onChange={(newValue) => {
-              setDateFilter({ ...dateFilter, end: newValue });
-            }}
-            renderInput={(params) => <TextField {...params} size="small" />}
-            minDate={minDate}
-            maxDate={maxDate}
-          />
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={handleClearDates}
-            sx={{ marginLeft: '16px', marginTop: '8px' }}
-          >
-            Clear
-          </Button>
-        </LocalizationProvider>
       </Box>
       <TableContainer component={Paper}>
         <Table>
