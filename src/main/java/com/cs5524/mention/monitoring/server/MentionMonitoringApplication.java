@@ -113,7 +113,6 @@ public class MentionMonitoringApplication {
 	}
 
 
-
 	@GetMapping("/test")
 	public ResponseEntity<List<Mention>> test() {
 		Calendar calendar = Calendar.getInstance();

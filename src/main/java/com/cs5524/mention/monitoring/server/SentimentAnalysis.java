@@ -15,21 +15,10 @@ import java.nio.charset.Charset;
 import org.json.JSONObject;
 
 public class SentimentAnalysis {
-    public static void main(String[] args) throws JsonProcessingException {
-//        List<String> texts = new ArrayList<String>();
-//        texts.add("The movie was great!");
-//        texts.add(
-//                "The food was terrible.");
-//        List<Integer> sentiments = getSentiment(texts);
-//        for (Integer sentiment : sentiments) {
-//            System.out.println(sentiment);
-//        }
-    }
-
     public static Integer getSentiment(String text) throws JsonProcessingException {
         AmazonSageMakerRuntime sagemaker = AmazonSageMakerRuntimeClientBuilder.defaultClient();
 
-        String endpointName = "sentiment-analysis";
+        String endpointName = "sentiment";
         String contentType = "application/json";
 
         String payload = "{\"inputs\":\"" + text + "\"}";

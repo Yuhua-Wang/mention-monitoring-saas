@@ -85,6 +85,7 @@ public class AirbnbAdaptor implements SocialMediaAPIAdaptor{
                 mentions.add(m);
                 System.out.println("done with " + m.getId_in_source());
             } catch (Exception e) {
+                System.out.println("Airbnb Adaptor:");
                 System.out.println(e.toString());
                 return mentions;
             }
