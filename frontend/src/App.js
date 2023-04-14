@@ -10,16 +10,15 @@ import {
 } from '@mui/material';
 import MentionsPlot from "./components/MentionsPlot";
 import Container from "@mui/material/Container";
-import MentionStatsCard from "./components/MentionStatsCard";
 
 function App() {
-  const url = "http://localhost:8080"
+  const url = process.env.REACT_APP_BACKEND_API_URL
   const [mentions, setMentions] = useState([]);
   const [selectedDateRange, setSelectedDateRange] = useState({
     start: null,
     end: null,
   });
-
+  console.log(url)
   const handleDataPointClick = (startDate, endDate) => {
     setSelectedDateRange({ start: startDate, end: endDate });
     moveToElement('mentionsTable');

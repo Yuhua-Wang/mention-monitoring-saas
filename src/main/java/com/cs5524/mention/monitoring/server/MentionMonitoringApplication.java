@@ -36,10 +36,10 @@ public class MentionMonitoringApplication {
 		SpringApplication.run(MentionMonitoringApplication.class, args);
 	}
 
-	@GetMapping("/")
-	public ResponseEntity<String> apiRoot() {
-		return new ResponseEntity<String>("Hello World", HttpStatus.OK);
-	}
+//	@GetMapping("/")
+//	public ResponseEntity<String> apiRoot() {
+//		return new ResponseEntity<String>("Hello World", HttpStatus.OK);
+//	}
 
 	// Keywords
 	@GetMapping("/keywords")
