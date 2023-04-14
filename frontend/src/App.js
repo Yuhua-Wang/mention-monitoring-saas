@@ -18,7 +18,6 @@ function App() {
     start: null,
     end: null,
   });
-  console.log(url)
   const handleDataPointClick = (startDate, endDate) => {
     setSelectedDateRange({ start: startDate, end: endDate });
     moveToElement('mentionsTable');
