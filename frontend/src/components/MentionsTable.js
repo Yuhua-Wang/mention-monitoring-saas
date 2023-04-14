@@ -14,7 +14,7 @@ import dayjs from 'dayjs';
 import MentionDialog from './MentionDialog'
 
 import axios from 'axios';
-const url = "http://localhost:8080"
+const url = process.env.REACT_APP_BACKEND_API_URL
 
 const truncateSummary = (summary, maxWords) => {
   const words = summary.split(' ');
