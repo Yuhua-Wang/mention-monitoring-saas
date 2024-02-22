@@ -1,26 +1,36 @@
 # mention-monitoring-saas
-This project is a SaaS solution for public opinion tracking and analysis. It is specifically designed to assist businesses in effectively monitoring, analyzing, and understanding customer sentiments and feedback gathered from social media platforms and review websites. <br>
-# Feature Overview
+This project is a SaaS solution for public opinion tracking and analysis. It is specifically designed to assist businesses in effectively monitoring, analyzing, and understanding customer sentiments and feedback gathered from social media platforms and review websites.
+## Table of Contents
+- **[Introduction](#mention-monitoring-saas)**
+- **[Features](#feature-overview)**
+- **[Application Overview](#application-overview)**
+- **[SaaS Architecture](#saas-architecture)**
+- **[Deployment Instructions](#deployment-instructions)**
+  - **[Deploy MySQL Database on RDS](#deploy-mysql-database-on-rds)**
+  - **[Deploy NLP models on SageMaker](#deploy-nlp-models-on-sagemaker)**
+  - **[Deploy Backend on Beanstalk](#deploy-backend-on-beanstalk)**
+  - **[Deploy Frontend on Beanstalk](#deploy-frontend-on-beanstalk)**
+## Feature Overview
 - *Mention Monitoring*: The application searches for and records mentions of the business on various social media platforms and reviews websites daily.
 - *Sentiment Analysis*: The application utilizes NLP models to analyze and interpret the emotions and feelings expressed in customer comments.
 - *Comment Summarization*: The application generates concise summaries of customer comments and categorizes them into business-interested topics.
 - *Data Visualization*: The application displays the information and analysis in interactive tables and charts.
-# Application Overview
-![Dashboard](DemoImages/Dashboard.png) <br>
+## Application Overview
+![Dashboard](DemoImage/Dashboard.png) <br>
 Upon accessing the website, users are greeted with a dashboard on the left side, which summarizes the trends mentioned for the current period. This dashboard displays changes in positive, negative, and neutral mentions and the ratio of positive mentions. Users have the flexibility to adjust the time frame to daily, weekly, or monthly intervals and can opt for a weighted score, where each mention is assigned a quality-based score.  <br>
-![Graph](DemoImages/Graph.png) <br>
+![Graph](DemoImage/Graph.png) <br>
 To the right of the dashboard, a line chart illustrates the historical trends of mentions. By hovering the mouse over a specific period, a panel containing detailed information will appear. Users have the option to toggle the display of the mean score on or off and can adjust the time range of the chart using the scroll bar beneath it. Additionally, the chart can be switched between displaying count and weighted scores.  <br>
-![Table](DemoImages/Table.png) <br>
+![Table](DemoImage/Table.png) <br>
 Scrolling further down brings users to the Mentions Overview section, presenting a table summarizing the collected mentions. Users can filter mentions based on sentiment, creation time, and keyword labels. Interacting with data points on the line chart automatically sets the date filter to the corresponding time period.  <br>
-![Comment](DemoImages/Comment.png) <br>
+![Comment](DemoImage/Comment.png) <br>
 Finally, clicking on a table entry triggers a popup containing comprehensive information about the selected mention.  <br>
-# SaaS Architecture  <br>
-![Structure](DemoImages/Structure.png) <br>
+## SaaS Architecture
+![Structure](DemoImage/Structure.png) <br>
 The application utilizes a three-tier architecture and is deployed on AWS cloud.
 The front end is crafted with the React framework and Material UI libraries.
 The Restful server is developed using Java Spring. Two pre-trained NLP models, twitter-xlm-roberta-base-sentiment and knkarthick/meeting_summary, were tuned and integrated into the backend.
 A MySQL database hosted on AWS RDS, which offers high availability and scalability.
-# Deployment Instructions
+## Deployment Instructions
 ### Deploy MySQL Database on RDS:
 - Sign in to your AWS Management Console and navigate to the RDS service.
 - Click on the "Create database" button.
