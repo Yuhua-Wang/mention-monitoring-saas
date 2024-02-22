@@ -6,7 +6,7 @@ This project is a SaaS solution for public opinion tracking and analysis. It is 
 - *Comment Summarization*: The application generates concise summaries of customer comments and categorizes them into business-interested topics.
 - *Data Visualization*: The application displays the information and analysis in interactive tables and charts.
 # Application Overview
-![Dashboard](DemoImages/DashBoard.png) <br>
+![Dashboard](DemoImages/Dashboard.png) <br>
 Upon accessing the website, users are greeted with a dashboard on the left side, which summarizes the trends mentioned for the current period. This dashboard displays changes in positive, negative, and neutral mentions and the ratio of positive mentions. Users have the flexibility to adjust the time frame to daily, weekly, or monthly intervals and can opt for a weighted score, where each mention is assigned a quality-based score.  <br>
 ![Graph](DemoImages/Graph.png) <br>
 To the right of the dashboard, a line chart illustrates the historical trends of mentions. By hovering the mouse over a specific period, a panel containing detailed information will appear. Users have the option to toggle the display of the mean score on or off and can adjust the time range of the chart using the scroll bar beneath it. Additionally, the chart can be switched between displaying count and weighted scores.  <br>
